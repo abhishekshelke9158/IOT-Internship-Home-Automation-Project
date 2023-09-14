@@ -4,16 +4,11 @@ Description   :   To control light's brigntness with brightness,monitor temperat
 Pheripherals  :   Arduino UNO , Temperature system, LED, LDR module, Serial Tank, Blynk cloud, Blynk App.
  *************************************************************/
 
-// Template ID, Device Name and Auth Token are provided by the Blynk.Cloud
-// See the Device Info tab, or Template settings
 // Name : Abhishek Shelke
 
 #define BLYNK_TEMPLATE_ID "TMPL3-EDC-yQm"
 #define BLYNK_TEMPLATE_NAME "Home Automation"
 #define BLYNK_AUTH_TOKEN "j77M0dO5zwYMsS5wHf5gplu_KYMrgIJG"
-
- 
-//#define BLYNK_PRINT Serial
 
 #include <SPI.h>
 #include <Ethernet.h>
@@ -32,15 +27,10 @@ unsigned int tank_volume;
 
 BlynkTimer timer;
 
-LiquidCrystal_I2C lcd(0x27, 16, 2); // set the LCD address to 0x27 for a 16 chars and 2 line display
-
-// This function is called every time the Virtual Pin 0 state changes
-//To turn ON and OFF cooler based virtual PIN value
+LiquidCrystal_I2C lcd(0x27, 16, 2); 
 BLYNK_WRITE(COOLER_V_PIN)
 {
   int value=param.asInt();
-
-  //If cooler button is ON on Blynk then ON Cooler
   if(value)  
   {
     
@@ -55,12 +45,9 @@ BLYNK_WRITE(COOLER_V_PIN)
     lcd.print("CO_R OFF ");
   }  
 }
-//To turn ON and OFF heater based virtual PIN value
 BLYNK_WRITE(HEATER_V_PIN )
 {
   int heater_sw=param.asInt();
-
-  //If heater button is ON on Blynk then ON Heater
   if(heater_sw)  
   {
     heater_control(ON);
@@ -74,7 +61,6 @@ BLYNK_WRITE(HEATER_V_PIN )
     lcd.print("HT_R OFF ");    
   }
 }
-//To turn ON and OFF inlet vale based virtual PIN value
 BLYNK_WRITE(INLET_V_PIN)
 {
   inlet_sw=param.asInt();
@@ -93,7 +79,6 @@ BLYNK_WRITE(INLET_V_PIN)
   }
   
 }
-//To turn ON and OFF outlet value based virtual switch value
 BLYNK_WRITE(OUTLET_V_PIN)
 {
   outlet_sw=param.asInt();
@@ -111,35 +96,22 @@ BLYNK_WRITE(OUTLET_V_PIN)
     lcd.print("OT_FL_OFF"); 
   }
 }
-// To display temperature and water volume as gauge on the Blynk App 
 void update_temperature_reading()
 {
-  // You can send any value at any time.
-  // Please don't send more that 10 values per second.
   Blynk.virtualWrite(TEMPERATURE_GAUGE, read_temperature());
   Blynk.virtualWrite(WATER_VOL_GAUGE, volume());
 }
-
-//To turn off the heater if the temperature raises above 35 deg C
 void handle_temp(void)
 {
   if((read_temperature()>float(35)))
   {
-    //Turn OFF the heater
-    heater_sw =0;
-    heater_control(OFF);
-
-    //Display notification on LCD
+    heater_sw 
     lcd.setCursor(8,0);
     lcd.print("HT_R OFF ");   
-
-    //Display notification on BLYNK APP
     Blynk.virtualWrite(BLYNK_TERMINAL_V_PIN,"Temperature is above 35 degree Celcius\n, so turning OFF the heater\n");
     Blynk.virtualWrite(HEATER_V_PIN,OFF);
   }  
 }
-
-//To control water volume above 2000ltrs
 void handle_tank(void)
 {
   if((tank_volume< 2000)&&(inlet_sw==OFF))
@@ -148,16 +120,11 @@ void handle_tank(void)
     lcd.setCursor(7,1);
     lcd.print("In_FL_ON ");
     inlet_sw=ON;
-
-  //Update the inlet buton status on app
     Blynk.virtualWrite(INLET_V_PIN, ON);
 
-  //Notification on Blynk App
     Blynk.virtualWrite(BLYNK_TERMINAL_V_PIN,"Water volume is less than 2000\n");
     Blynk.virtualWrite(BLYNK_TERMINAL_V_PIN,"Turning ON the inlet valve\n");
   }
-
-  //Check if tank is Full, 3000Ltrs
   if((tank_volume == 3000)&&(inlet_sw==ON))
   {
     disable_inlet();
@@ -165,10 +132,8 @@ void handle_tank(void)
     lcd.print("In_FL_OFF");
     inlet_sw=OFF;
 
-  //Update the inlet buton status on app
     Blynk.virtualWrite(INLET_V_PIN, OFF);
 
-  //Notification on Blynk App
     Blynk.virtualWrite(BLYNK_TERMINAL_V_PIN,"Water level is Full\n");
     Blynk.virtualWrite(BLYNK_TERMINAL_V_PIN,"Turning OFF the inlet valve\n");
   }
@@ -177,27 +142,19 @@ void handle_tank(void)
 
 void setup(void)
 {
-  //Connecting Arduino to Blynk  
     Blynk.begin(auth);
-    
-  //Initializing the LCD
+   
     lcd.init();
     lcd.backlight();
     lcd.clear();
     lcd.home();
-    
-  //Garden Lights using LDR  
+   
     init_ldr();
-
-    init_temperature_system();
     
-  //Initializing the Serial Tank
     init_serial_tank();  
 
     lcd.setCursor(0,0);
     lcd.print("T=");
-
-  //Set cursor to display volume of tank
     lcd.setCursor(0,1);
     lcd.print("V=");
 
@@ -214,18 +171,14 @@ void loop(void)
     temperature= String (read_temperature(),2);
     lcd.print(temperature);   
     
-  //Display volume on LCD
     tank_volume=volume();
     lcd.setCursor(2,1);
     lcd.print(tank_volume);   
-  
-  //to check the threshold temperature and controlling heater
+ 
     handle_temp();
 
-  //to monitor the volumne of the water and if less then 2000ltrs, turn ON Inlet
     handle_tank();
-    
-  //To run Blynk Application      
+       
     Blynk.run();
     timer.run();
 

@@ -8,7 +8,6 @@ void init_temperature_system(void)
     pinMode(HEATER, OUTPUT);
     pinMode(COOLER, OUTPUT);
 
-  //Turning OFF Heater and Cooler
     digitalWrite(HEATER, LOW);
     digitalWrite(COOLER, LOW);
 }

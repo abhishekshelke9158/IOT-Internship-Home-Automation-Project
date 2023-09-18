@@ -8,12 +8,10 @@ unsigned char valueh, valuel;
 void init_serial_tank(void) 
 {
     Serial.begin(19200);
-    Serial.write(0xFF); //Synchronize the Communication
+    Serial.write(0xFF);
     Serial.write(0xFF);
     Serial.write(0xFF);   
 }
-
-//To read volume of water in Serial Tank
 unsigned int volume(void)
 {
   Serial.write(VOLUME);
